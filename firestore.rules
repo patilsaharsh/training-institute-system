@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow authenticated users to read their own user document
+    match /users/{userId} {
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && 
+        ((request.auth.uid == userId && 
+          request.resource.data.keys().hasOnly(['email', 'displayName', 'photoURL'])) || 
+        hasRole('admin'));
+      allow delete: if false;
+    }
+    
+    // Applications - Student can read their own applications
+    match /applications/{applicationId} {
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid && 
+        hasRole('student');
+      
+      allow read: if request.auth != null && 
+        (resource.data.userId == request.auth.uid || 
+        hasRole('admin') || 
+        isAssignedInterviewer(applicationId));
+      
+      allow update: if request.auth != null && 
+        (hasRole('admin') || 
+        (isAssignedInterviewer(applicationId) && 
+        isUpdatingOwnInterview()));
+      
+      allow delete: if false;
+    }
+    
+    // Helper functions
+    function hasRole(role) {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return userDoc != null && userDoc.role != null && userDoc.role[role] == true;
+    }
+    
+    function isAssignedInterviewer(applicationId) {
+      let appDoc = get(/databases/$(database)/documents/applications/$(applicationId)).data;
+      
+      // Check if user is assigned as interviewer in any of the interview stages
+      return hasRole('interviewer') && 
+        ((appDoc.interviews != null && appDoc.interviews.interview1 != null && 
+          appDoc.interviews.interview1.interviewerId == request.auth.email) || 
+         (appDoc.interviews != null && appDoc.interviews.interview2 != null && 
+          appDoc.interviews.interview2.interviewerId == request.auth.email) || 
+         (appDoc.interviews != null && appDoc.interviews.interview3 != null && 
+          appDoc.interviews.interview3.interviewerId == request.auth.email));
+    }
+    
+    function isUpdatingOwnInterview() {
+      let appDoc = get(/databases/$(resource.id)/documents/applications/$(resourceId)).data;
+      let incomingData = request.resource.data;
+      
+      // Only allow interviewers to update the interview they're assigned to
+      let isInterview1Interviewer = appDoc.interviews != null && appDoc.interviews.interview1 != null && 
+          appDoc.interviews.interview1.interviewerId == request.auth.email;
+      
+      let isInterview2Interviewer = appDoc.interviews != null && appDoc.interviews.interview2 != null && 
+          appDoc.interviews.interview2.interviewerId == request.auth.email;
+      
+      let isInterview3Interviewer = appDoc.interviews != null && appDoc.interviews.interview3 != null && 
+          appDoc.interviews.interview3.interviewerId == request.auth.email;
+      
+      let allowedFields1 = ['interviews.interview1.status', 'interviews.interview1.feedback', 'status', 'updatedAt'];
+      let allowedFields2 = ['interviews.interview2.status', 'interviews.interview2.feedback', 'status', 'updatedAt'];
+      let allowedFields3 = ['interviews.interview3.status', 'interviews.interview3.feedback', 'status', 'updatedAt'];
+      
+      return (isInterview1Interviewer && incomingData.diff(resource.data).affectedKeys().hasOnly(allowedFields1)) ||
+             (isInterview2Interviewer && incomingData.diff(resource.data).affectedKeys().hasOnly(allowedFields2)) ||
+             (isInterview3Interviewer && incomingData.diff(resource.data).affectedKeys().hasOnly(allowedFields3));
+    }
+  }
+}
