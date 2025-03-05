@@ -8,9 +8,12 @@ import Button from '../../components/Button';
 import StatusBadge from '../../components/StatusBadge';
 import dayjs from 'dayjs';
 
+// Use intersection type rather than extending
+type ApplicationWithId = ApplicationData & { id: string };
+
 const InterviewerDashboard = () => {
   const { currentUser } = useAuth();
-  const [applications, setApplications] = useState<(ApplicationData & { id: string })[]>([]);
+  const [applications, setApplications] = useState<ApplicationWithId[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -32,7 +35,7 @@ const InterviewerDashboard = () => {
   }, [currentUser]);
 
   // Helper function to get interview number for this interviewer
-  const getInterviewNumber = (application: ApplicationData & { id: string }) => {
+  const getInterviewNumber = (application: ApplicationWithId) => {
     if (!currentUser?.email) return null;
     
     const email = currentUser.email;
@@ -49,22 +52,29 @@ const InterviewerDashboard = () => {
   };
 
   // Helper function to get interview date
-  const getInterviewDate = (application: ApplicationData & { id: string }, interviewNumber: number) => {
-    const interviewKey = `interview${interviewNumber}` as keyof typeof application.interviews;
+  const getInterviewDate = (application: ApplicationWithId, interviewNumber: number) => {
+    if (!application.interviews) return 'Not scheduled';
     
-    if (!application.interviews || !application.interviews[interviewKey]) {
+    let interview;
+    if (interviewNumber === 1) {
+      interview = application.interviews.interview1;
+    } else if (interviewNumber === 2) {
+      interview = application.interviews.interview2;
+    } else if (interviewNumber === 3) {
+      interview = application.interviews.interview3;
+    } else {
       return 'Not scheduled';
     }
     
-    const interview = application.interviews[interviewKey];
+    if (!interview || !interview.scheduledDate) {
+      return 'Not scheduled';
+    }
     
-    return interview.scheduledDate
-      ? dayjs(interview.scheduledDate.toDate()).format('MMM D, YYYY h:mm A')
-      : 'Not scheduled';
+    return dayjs(interview.scheduledDate.toDate()).format('MMM D, YYYY h:mm A');
   };
 
   // Helper function to check if interview is pending
-  const isInterviewPending = (application: ApplicationData & { id: string }, interviewNumber: number) => {
+  const isInterviewPending = (application: ApplicationWithId, interviewNumber: number) => {
     const interviewStatus = {
       1: ['pending', 'interview1_scheduled'],
       2: ['interview1_passed', 'interview2_scheduled'],
@@ -72,6 +82,21 @@ const InterviewerDashboard = () => {
     }[interviewNumber] || [];
     
     return interviewStatus.includes(application.status);
+  };
+
+  // Helper function to get meeting link
+  const getMeetingLink = (application: ApplicationWithId, interviewNumber: number) => {
+    if (!application.interviews) return undefined;
+    
+    if (interviewNumber === 1 && application.interviews.interview1) {
+      return application.interviews.interview1.meetingLink;
+    } else if (interviewNumber === 2 && application.interviews.interview2) {
+      return application.interviews.interview2.meetingLink;
+    } else if (interviewNumber === 3 && application.interviews.interview3) {
+      return application.interviews.interview3.meetingLink;
+    }
+    
+    return undefined;
   };
 
   // Filter applications based on the selected filter
@@ -148,6 +173,7 @@ const InterviewerDashboard = () => {
             
             const interviewDate = getInterviewDate(application, interviewNumber);
             const isPending = isInterviewPending(application, interviewNumber);
+            const meetingLink = getMeetingLink(application, interviewNumber);
             
             return (
               <Card key={application.id}>
@@ -173,10 +199,10 @@ const InterviewerDashboard = () => {
                       <StatusBadge status={application.status} />
                     </div>
                     
-                    {application.interviews?.[`interview${interviewNumber}` as keyof typeof application.interviews]?.meetingLink && (
+                    {meetingLink && (
                       <div className="mt-3">
                         <a
-                          href={application.interviews[`interview${interviewNumber}` as keyof typeof application.interviews].meetingLink}
+                          href={meetingLink}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

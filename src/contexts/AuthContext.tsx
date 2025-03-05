@@ -11,7 +11,9 @@ import {
   signInWithGoogle, 
   signOutUser, 
   onAuthStateChange, 
-  getCurrentUserRole, 
+  getCurrentUserRole,
+  getRedirectResultHandler,
+  checkExistingAuth,
   UserRole 
 } from '../services/authService';
 
@@ -34,20 +36,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChange(async (user) => {
-      setCurrentUser(user);
-      
-      if (user) {
-        const role = await getCurrentUserRole(user.uid);
-        setUserRole(role);
-      } else {
-        setUserRole(null);
+    let unsubscribe = () => {};
+    let authCheckComplete = false;
+    
+    const handleAuthentication = async () => {
+      try {
+        // First check if we're already authenticated
+        const existingAuth = await checkExistingAuth();
+        if (existingAuth) {
+          setCurrentUser(existingAuth.user);
+          setUserRole(existingAuth.role);
+          authCheckComplete = true;
+          setLoading(false);
+          return;
+        }
+        
+        // Then try to handle any redirect result
+        const redirectResult = await getRedirectResultHandler();
+        
+        if (redirectResult) {
+          setCurrentUser(redirectResult.user);
+          setUserRole(redirectResult.role);
+          authCheckComplete = true;
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error handling authentication:', error);
+      } finally {
+        // Set up the auth state listener regardless of redirect result
+        unsubscribe = onAuthStateChange(async (user) => {
+          setCurrentUser(user);
+          
+          if (user) {
+            const role = await getCurrentUserRole(user.uid);
+            setUserRole(role);
+          } else {
+            setUserRole(null);
+          }
+          
+          // Only set loading to false if we haven't already done so
+          if (!authCheckComplete) {
+            setLoading(false);
+          }
+        });
       }
-      
-      setLoading(false);
-    });
-
-    return unsubscribe;
+    };
+    
+    handleAuthentication();
+    
+    return () => unsubscribe();
   }, []);
 
   const signIn = async () => {

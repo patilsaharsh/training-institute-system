@@ -1,33 +1,82 @@
 // src/pages/LoginPage.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import { toast } from 'react-toastify';
+import { checkExistingAuth } from '../services/authService';
 
 const LoginPage = () => {
-  const { signIn, isAdmin, isInterviewer, isStudent } = useAuth();
+  const { currentUser, signIn, isAdmin, isInterviewer, isStudent } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  // Check for an existing session when the component loads
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // First check if we already have a current user from context
+        if (currentUser) {
+          redirectBasedOnRole();
+          return;
+        }
+        
+        // Check if we're already authenticated 
+        const existingAuth = await checkExistingAuth();
+        
+        if (existingAuth) {
+          // User already authenticated, wait a moment for roles
+          setTimeout(() => {
+            redirectBasedOnRole();
+          }, 300);
+        }
+      } catch (error) {
+        console.error("Error checking authentication:", error);
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+    
+    checkAuth();
+  }, [currentUser]);
+  
+  // Function to redirect based on role
+  const redirectBasedOnRole = () => {
+    if (isAdmin()) {
+      navigate('/admin');
+      toast.success('Signed in as Administrator');
+    } else if (isInterviewer()) {
+      navigate('/interviewer');
+      toast.success('Signed in as Interviewer');
+    } else if (isStudent()) {
+      navigate('/student');
+      toast.success('Signed in as Student');
+    } else {
+      navigate('/');
+      toast.success('Signed in successfully!');
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
       await signIn();
       
-      // Redirect based on user role
-      if (isAdmin()) {
-        navigate('/admin');
-      } else if (isInterviewer()) {
-        navigate('/interviewer');
-      } else if (isStudent()) {
-        navigate('/student');
-      } else {
-        navigate('/');
-      }
-      
-      toast.success('Signed in successfully!');
+      // Wait a moment to ensure roles are loaded
+      setTimeout(() => {
+        if (isAdmin()) {
+          navigate('/admin');
+        } else if (isInterviewer()) {
+          navigate('/interviewer');
+        } else if (isStudent()) {
+          navigate('/student');
+        } else {
+          navigate('/');
+        }
+        toast.success('Signed in successfully!');
+      }, 300);
     } catch (error) {
       console.error('Error signing in:', error);
       toast.error('Failed to sign in. Please try again.');
@@ -53,7 +102,8 @@ const LoginPage = () => {
                 variant="outline"
                 fullWidth
                 onClick={handleGoogleSignIn}
-                isLoading={isLoading}
+                isLoading={isLoading || isCheckingAuth}
+                disabled={isLoading || isCheckingAuth}
                 className="flex items-center justify-center"
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">

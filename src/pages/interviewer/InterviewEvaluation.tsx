@@ -2,12 +2,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { getApplicationById, updateInterviewResult } from '../../services/applicationService';
+import { getApplicationById, updateInterviewResult, ApplicationData } from '../../services/applicationService';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import StatusBadge from '../../components/StatusBadge';
 import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
+
+// Use intersection type rather than extending
+type ApplicationWithId = ApplicationData & { id: string };
 
 const InterviewEvaluation = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,7 +19,7 @@ const InterviewEvaluation = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   
-  const [application, setApplication] = useState<any>(null);
+  const [application, setApplication] = useState<ApplicationWithId | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -26,6 +29,17 @@ const InterviewEvaluation = () => {
   
   // Check if this interview is already completed
   const [isCompleted, setIsCompleted] = useState(false);
+
+  // Helper function to get interview by number
+  const getInterviewByNumber = (app: ApplicationWithId, num: number) => {
+    if (!app.interviews) return undefined;
+    
+    if (num === 1) return app.interviews.interview1;
+    if (num === 2) return app.interviews.interview2;
+    if (num === 3) return app.interviews.interview3;
+    
+    return undefined;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,11 +55,12 @@ const InterviewEvaluation = () => {
           return;
         }
         
-        setApplication(applicationData);
+        // Add the id to the application data
+        const applicationWithId = { ...applicationData, id } as ApplicationWithId;
+        setApplication(applicationWithId);
         
-        // Check if this interviewer is assigned to this interview
-        const interviewKey = `interview${interviewNumber}` as keyof typeof applicationData.interviews;
-        const interview = applicationData.interviews?.[interviewKey];
+        // Get the interview based on the number
+        const interview = getInterviewByNumber(applicationWithId, interviewNumber);
         
         if (!interview || interview.interviewerId !== currentUser?.email) {
           toast.error('You are not assigned to this interview');
@@ -103,10 +118,9 @@ const InterviewEvaluation = () => {
 
   // Helper function to get interview details
   const getInterviewDetails = () => {
-    if (!application || !application.interviews) return null;
+    if (!application) return null;
     
-    const interviewKey = `interview${interviewNumber}` as keyof typeof application.interviews;
-    const interview = application.interviews[interviewKey];
+    const interview = getInterviewByNumber(application, interviewNumber);
     
     if (!interview) return null;
     
