@@ -22,7 +22,7 @@ const applicationSchema = z.object({
     .string()
     .min(10, "Phone number must be at least 10 digits")
     .regex(/^\d+$/, "Phone number must contain only digits"),
-  course: z.enum(["SAP ABAP", "SAP SD", "SAP MM", "SAP CPI", "SAP BASIS"], {
+  course: z.enum(["SAP ABAP", "SAP SD", "SAP MM", "SAP CPI", "SAP BASIS","SAP FICO"], {
     errorMap: () => ({ message: "Please select a course" }),
   }),
   resumeUrl: z.string().url("Please provide a valid URL to your resume"),
@@ -200,6 +200,7 @@ const ApplicationForm = () => {
                   <option value="SAP MM">SAP MM</option>
                   <option value="SAP CPI">SAP CPI</option>
                   <option value="SAP BASIS">SAP BASIS</option>
+                  <option value="SAP FICO">SAP FICO</option>
                 </select>
                 {errors.course && (
                   <p className="mt-1 text-sm text-red-600">

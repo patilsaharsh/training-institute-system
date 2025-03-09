@@ -1,13 +1,31 @@
 // src/pages/LandingPage.tsx
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/Button';
+
+// Interface removed as it's not used in this component
+
+interface Testimonial {
+  id: number;
+  content: string;
+  name: string;
+  title: string;
+  image: string;
+}
+
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}
 
 const LandingPage = () => {
   const { currentUser, isStudent } = useAuth();
 
   // Testimonials data
-  const testimonials = [
+  const testimonials: Testimonial[] = [
     {
       id: 1,
       content: "The training program completely transformed my career. I went from having no technical skills to becoming a full-fledged SAP developer in just a few months.",
@@ -17,7 +35,7 @@ const LandingPage = () => {
     },
     {
       id: 2,
-      content: "The instructors are industry experts who provide practical knowledge beyond just theory. The hands-on projects prepared me for real-world challenges.I secured 50 LPA Packaged",
+      content: "The instructors are industry experts who provide practical knowledge beyond just theory. The hands-on projects prepared me for real-world challenges. I secured 50 LPA Packaged",
       name: "Vedant Juikar",
       title: "SAP CPI+ABAP Consultant",
       image: "https://randomuser.me/api/portraits/men/32.jpg"
@@ -27,12 +45,47 @@ const LandingPage = () => {
       content: "I was able to secure a job before even completing my training. The institute's placement assistance and industry connections were invaluable.",
       name: "Nitesh Marathe",
       title: "SAP CPI Specialist",
-      image: "https://randomuser.me/api/portraits/women/44.jpg"
+      image: "https://randomuser.me/api/portraits/men/44.jpg"
+    },
+    {
+      id: 4,
+      content: "I was able to secure a job before even completing my training. The institute's placement assistance and industry connections were invaluable.",
+      name: "Pranit Dhupkar",
+      title: "SAP CPI Specialist",
+      image: "https://randomuser.me/api/portraits/men/40.jpg"
+    },
+    {
+      id: 5,
+      content: "I was able to secure a job before even completing my training. The institute's placement assistance and industry connections were invaluable.",
+      name: "Akash Sawant",
+      title: "SAP CPI Specialist",
+      image: "https://randomuser.me/api/portraits/men/49.jpg"
+    },
+    {
+      id: 6,
+      content: "I was able to secure a job before even completing my training. The institute's placement assistance and industry connections were invaluable.",
+      name: "Rohit Patil",
+      title: "SAP CPI Specialist",
+      image: "https://randomuser.me/api/portraits/men/52.jpg"
+    },
+    {
+      id: 7,
+      content: "I was able to secure a job before even completing my training. The institute's placement assistance and industry connections were invaluable.",
+      name: "Varun Sarode",
+      title: "SAP CPI Specialist",
+      image: "https://randomuser.me/api/portraits/men/55.jpg"
+    },
+    {
+      id: 8,
+      content: "I was able to secure a job before even completing my training. The institute's placement assistance and industry connections were invaluable.",
+      name: "Malhar Divekar",
+      title: "SAP CPI Specialist",
+      image: "https://randomuser.me/api/portraits/men/56.jpg"
     },
   ];
 
-  // Course offerings
-  const courses = [
+  // Course offerings with SAP FICO added
+  const courses: Course[] = [
     {
       id: 'sap-abap',
       title: 'SAP ABAP',
@@ -64,6 +117,16 @@ const LandingPage = () => {
       ),
     },
     {
+      id: 'sap-fico',
+      title: 'SAP FICO',
+      description: 'Master Financial Accounting and Controlling to manage financial operations and reporting.',
+      icon: (
+        <svg className="h-8 w-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+    {
       id: 'sap-cpi',
       title: 'SAP CPI',
       description: 'Develop skills in Cloud Platform Integration to connect different systems and applications.',
@@ -85,6 +148,50 @@ const LandingPage = () => {
       ),
     },
   ];
+
+  // For testimonial slider
+  const [isPaused, setIsPaused] = useState(false);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const [translateX, setTranslateX] = useState(0);
+  
+  // Handle testimonial auto-rotation - reduced time to 3 seconds
+  useEffect(() => {
+    if (!isPaused) {
+      const totalTestimonials = testimonials.length;
+      const interval = setInterval(() => {
+        setTranslateX(prev => {
+          const newTranslate = prev - 100;
+          // If we've reached the end, snap back to first testimonial
+          if (Math.abs(newTranslate) >= totalTestimonials * 100) {
+            return 0;
+          }
+          return newTranslate;
+        });
+      }, 3000); // Reduced from 5000 to 3000 ms
+      
+      return () => clearInterval(interval);
+    }
+  }, [isPaused, testimonials.length]);
+  
+  // Handle mouse interaction
+  const handleMouseEnter = () => {
+    setIsPaused(true);
+  };
+  
+  const handleMouseLeave = () => {
+    setIsPaused(false);
+  };
+
+  // The profile picture function was removed as it's not used in this component
+  // If needed in the future, uncomment the function below:
+  /*
+  const getProfilePicture = (user: User | null) => {
+    if (!user || !user.photoURL) {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.displayName || 'User')}&background=1D3677&color=fff`;
+    }
+    return user.photoURL;
+  };
+  */
 
   return (
     <div className="space-y-16 pb-16">
@@ -164,42 +271,73 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="bg-gray-50 py-12 overflow-hidden">
+      {/* Modern, Sleek Testimonial Slider */}
+      <section className="bg-gray-50 py-16 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
+          <div className="text-center mb-12">
             <h2 className="text-base text-indigo-600 font-semibold tracking-wide uppercase">Testimonials</h2>
             <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
               Success Stories from Our Graduates
             </p>
           </div>
           
-          <div className="mt-12 max-w-lg mx-auto grid gap-8 md:grid-cols-2 lg:grid-cols-3 lg:max-w-none">
-            {testimonials.map((testimonial) => (
-              <div key={testimonial.id} className="flex flex-col overflow-hidden rounded-lg shadow-lg">
-                <div className="flex-1 bg-white p-6 flex flex-col justify-between">
-                  <div className="flex-1">
-                    <blockquote>
-                      <p className="text-gray-500 text-base italic leading-relaxed">{testimonial.content}</p>
-                    </blockquote>
-                  </div>
-                  <div className="mt-6 flex items-center">
-                    <div className="flex-shrink-0">
-                      <img className="h-10 w-10 rounded-full" src={testimonial.image} alt={testimonial.name} />
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-900">{testimonial.name}</p>
-                      <p className="text-xs text-gray-500">{testimonial.title}</p>
+          {/* Modern Testimonial Slider */}
+          <div 
+            className="relative overflow-hidden p-4 mx-auto max-w-5xl"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            ref={sliderRef}
+          >
+            <div 
+              className="flex transition-transform duration-500"
+              style={{ transform: `translateX(${translateX}%)` }}
+            >
+              {testimonials.map((testimonial) => (
+                <div key={testimonial.id} className="flex-shrink-0 w-full px-4">
+                  <div className="bg-white rounded-xl shadow-sm p-8 h-full">
+                    <div className="flex flex-col h-full">
+                      <div className="mb-6 flex-grow">
+                        <p className="text-gray-600 italic text-lg leading-relaxed">"{testimonial.content}"</p>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <img 
+                            className="h-12 w-12 rounded-full object-cover"
+                            src={testimonial.image}
+                            alt={testimonial.name}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).onerror = null;
+                              (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name.replace(/ /g, '+'))}&background=1D3677&color=fff`;
+                            }}
+                          />
+                        </div>
+                        <div className="ml-4">
+                          <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
+                          <p className="text-sm text-gray-500">{testimonial.title}</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            
+            {/* Subtle progress indicator */}
+            <div className="absolute bottom-0 left-0 right-0 flex justify-center mt-6 space-x-1">
+              {testimonials.map((_, i) => (
+                <div 
+                  key={i} 
+                  className={`h-1 bg-indigo-600 rounded-full transition-all duration-500 ${
+                    Math.abs(translateX) / 100 === i ? 'w-8 opacity-100' : 'w-4 opacity-40'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Call to Action */}
+      {/* Call to Action - Fixed button text issue */}
       <section className="bg-indigo-700">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
           <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
@@ -210,13 +348,13 @@ const LandingPage = () => {
             <div className="inline-flex rounded-md shadow">
               {currentUser && isStudent() ? (
                 <Link to="/student/apply">
-                  <Button className="px-5 py-3 bg-white text-indigo-600 hover:bg-indigo-50">
+                  <Button className="px-5 py-3 bg-white text-indigo-600 hover:bg-indigo-50 font-bold border border-indigo-100">
                     Apply Now
                   </Button>
                 </Link>
               ) : (
                 <Link to="/login">
-                  <Button className="px-5 py-3 bg-white text-indigo-600 hover:bg-indigo-50">
+                  <Button className="px-5 py-3 bg-white text-indigo-600 hover:bg-indigo-50 font-bold border border-indigo-100">
                     Get Started
                   </Button>
                 </Link>
@@ -248,13 +386,13 @@ const LandingPage = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  123 Training Avenue, Tech City, TC 12345
+                  1st Floor, House No 1644, At: Chondhi, Post: Kihim, Tal: Alibag, Dist: Raigad, Maharashtra 402201
                 </p>
                 <p className="flex items-center">
                   <svg className="h-5 w-5 text-indigo-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  info@traininginstitute.com
+                  info@utkarsh-foundation.com
                 </p>
                 <p className="flex items-center">
                   <svg className="h-5 w-5 text-indigo-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

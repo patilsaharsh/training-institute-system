@@ -1,12 +1,14 @@
 // src/components/Navbar.tsx
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
   const { currentUser, signOut, isAdmin, isInterviewer, isStudent } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation(); // Get current location
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [logoError, setLogoError] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -21,19 +23,40 @@ const Navbar = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  // Helper function to determine if a path is active
+  const isActive = (path: string) => {
+    if (path === '/' && location.pathname === '/') return true;
+    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    return false;
+  };
+
   return (
     <nav className="bg-white shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-indigo-600 font-bold text-xl">Utkarsh Foundation</span>
+              <img 
+                src="https://utkarsh-foundation.com/wp-content/uploads/2023/11/Utkarsh-logo.jpg" 
+                alt="Utkarsh Foundation Logo" 
+                className="h-10 w-10 rounded-full mr-2"
+                onError={(e) => {
+                  setLogoError(true);
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+              <span className={`text-[#1D3677] font-serif font-bold text-xl ${logoError ? 'ml-0' : ''}`}>
+                Utkarsh Foundation
+              </span>
             </Link>
             
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               <Link 
                 to="/" 
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                className={`${isActive('/') 
+                  ? 'border-indigo-500 text-gray-900' 
+                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} 
+                  inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
               >
                 Home
               </Link>
@@ -42,13 +65,19 @@ const Navbar = () => {
                 <>
                   <Link 
                     to="/student" 
-                    className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                    className={`${isActive('/student') && !isActive('/student/apply')
+                      ? 'border-indigo-500 text-gray-900' 
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} 
+                      inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
                   >
                     Dashboard
                   </Link>
                   <Link 
                     to="/student/apply" 
-                    className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                    className={`${isActive('/student/apply') 
+                      ? 'border-indigo-500 text-gray-900' 
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} 
+                      inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
                   >
                     Apply
                   </Link>
@@ -58,7 +87,10 @@ const Navbar = () => {
               {currentUser && isAdmin() && (
                 <Link 
                   to="/admin" 
-                  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                  className={`${isActive('/admin') 
+                    ? 'border-indigo-500 text-gray-900' 
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} 
+                    inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
                 >
                   Admin Dashboard
                 </Link>
@@ -67,7 +99,10 @@ const Navbar = () => {
               {currentUser && isInterviewer() && (
                 <Link 
                   to="/interviewer" 
-                  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                  className={`${isActive('/interviewer') 
+                    ? 'border-indigo-500 text-gray-900' 
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} 
+                    inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
                 >
                   Interviewer Dashboard
                 </Link>
@@ -79,13 +114,18 @@ const Navbar = () => {
             {currentUser ? (
               <div className="ml-3 relative">
                 <div className="flex items-center">
-                  {currentUser.photoURL && (
+                  {/* Simplified profile picture handling - desktop view */}
+                  <div className="h-8 w-8 rounded-full overflow-hidden">
                     <img
-                      className="h-8 w-8 rounded-full"
-                      src={currentUser.photoURL}
+                      className="h-full w-full object-cover"
+                      src={currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'User')}&background=1D3677&color=fff`}
                       alt={currentUser.displayName || "User"}
+                      onError={(e) => {
+                        // If image fails to load, use avatar generator
+                        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'User')}&background=1D3677&color=fff`;
+                      }}
                     />
-                  )}
+                  </div>
                   <span className="ml-2 text-sm text-gray-700">{currentUser.displayName}</span>
                   <button
                     onClick={handleSignOut}
@@ -143,7 +183,10 @@ const Navbar = () => {
         <div className="pt-2 pb-3 space-y-1">
           <Link
             to="/"
-            className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+            className={`${isActive('/') 
+              ? 'bg-indigo-50 border-indigo-500 text-indigo-700' 
+              : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'}
+              block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
             onClick={() => setIsMenuOpen(false)}
           >
             Home
@@ -153,14 +196,20 @@ const Navbar = () => {
             <>
               <Link
                 to="/student"
-                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+                className={`${isActive('/student') && !isActive('/student/apply')
+                  ? 'bg-indigo-50 border-indigo-500 text-indigo-700' 
+                  : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'}
+                  block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 Dashboard
               </Link>
               <Link
                 to="/student/apply"
-                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+                className={`${isActive('/student/apply')
+                  ? 'bg-indigo-50 border-indigo-500 text-indigo-700' 
+                  : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'}
+                  block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 Apply
@@ -171,7 +220,10 @@ const Navbar = () => {
           {currentUser && isAdmin() && (
             <Link
               to="/admin"
-              className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+              className={`${isActive('/admin')
+                ? 'bg-indigo-50 border-indigo-500 text-indigo-700' 
+                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'}
+                block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
               onClick={() => setIsMenuOpen(false)}
             >
               Admin Dashboard
@@ -181,7 +233,10 @@ const Navbar = () => {
           {currentUser && isInterviewer() && (
             <Link
               to="/interviewer"
-              className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+              className={`${isActive('/interviewer')
+                ? 'bg-indigo-50 border-indigo-500 text-indigo-700' 
+                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'}
+                block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
               onClick={() => setIsMenuOpen(false)}
             >
               Interviewer Dashboard
@@ -192,15 +247,18 @@ const Navbar = () => {
         <div className="pt-4 pb-3 border-t border-gray-200">
           {currentUser ? (
             <div className="flex items-center px-4">
-              {currentUser.photoURL && (
-                <div className="flex-shrink-0">
-                  <img
-                    className="h-10 w-10 rounded-full"
-                    src={currentUser.photoURL}
-                    alt={currentUser.displayName || "User"}
-                  />
-                </div>
-              )}
+              {/* Simplified profile picture handling - mobile view */}
+              <div className="flex-shrink-0 h-10 w-10 rounded-full overflow-hidden">
+                <img
+                  className="h-full w-full object-cover"
+                  src={currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'User')}&background=1D3677&color=fff`}
+                  alt={currentUser.displayName || "User"}
+                  onError={(e) => {
+                    // If image fails to load, use avatar generator
+                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'User')}&background=1D3677&color=fff`;
+                  }}
+                />
+              </div>
               <div className="ml-3">
                 <div className="text-base font-medium text-gray-800">{currentUser.displayName}</div>
                 <div className="text-sm font-medium text-gray-500">{currentUser.email}</div>
