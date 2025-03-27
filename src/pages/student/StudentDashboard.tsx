@@ -8,9 +8,15 @@ import Button from '../../components/Button';
 import StatusBadge from '../../components/StatusBadge';
 import dayjs from 'dayjs';
 
+// Enhanced interface that includes the rejection reason
+interface EnhancedApplicationData extends ApplicationData {
+  id: string;
+  rejectionReason?: string;
+}
+
 const StudentDashboard = () => {
   const { currentUser } = useAuth();
-  const [applications, setApplications] = useState<(ApplicationData & { id: string })[]>([]);
+  const [applications, setApplications] = useState<EnhancedApplicationData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -31,7 +37,7 @@ const StudentDashboard = () => {
   }, [currentUser]);
 
   // Helper function to get interview stage details
-  const getInterviewDetails = (application: ApplicationData & { id: string }) => {
+  const getInterviewDetails = (application: EnhancedApplicationData) => {
     const interviewStages = [
       { key: 'interview1', label: 'Interview 1' },
       { key: 'interview2', label: 'Interview 2' },
@@ -64,6 +70,22 @@ const StudentDashboard = () => {
     }
 
     return null;
+  };
+
+  // Function to render the rejection notification
+  const renderRejectionNotice = (application: EnhancedApplicationData) => {
+    if (application.status !== 'rejected' || !application.rejectionReason) {
+      return null;
+    }
+
+    return (
+      <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+        <h4 className="text-sm font-medium text-red-800">Application Rejected</h4>
+        <p className="mt-1 text-sm text-red-700">
+          <span className="font-medium">Reason:</span> {application.rejectionReason}
+        </p>
+      </div>
+    );
   };
 
   return (
@@ -115,6 +137,9 @@ const StudentDashboard = () => {
                 </div>
                 
                 <div className="mt-4 space-y-4">
+                  {/* Render rejection notice if the application was rejected */}
+                  {renderRejectionNotice(application)}
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Personal Details</h4>
@@ -144,14 +169,24 @@ const StudentDashboard = () => {
                             
                             {interviewDetails.meetingLink && (
                               <div className="mt-2">
-                                <a 
-                                  href={interviewDetails.meetingLink} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                >
-                                  Join Interview
-                                </a>
+                                {/* Check if interview status is 'passed' or 'failed' to disable the link */}
+                                {interviewDetails.status.includes('_passed') || interviewDetails.status.includes('_failed') ? (
+                                  <button
+                                    disabled
+                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-gray-500 bg-gray-200 cursor-not-allowed"
+                                  >
+                                    Interview Completed
+                                  </button>
+                                ) : (
+                                  <a 
+                                    href={interviewDetails.meetingLink} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                  >
+                                    Join Interview
+                                  </a>
+                                )}
                               </div>
                             )}
                             

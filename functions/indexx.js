@@ -111,6 +111,42 @@ exports.sendApplicationConfirmationEmail = functions.https.onCall(
   })
 );
 
+
+// Send status update notification - UPDATED to include rejection reason
+exports.sendStatusUpdateNotification = functions.https.onCall(
+  withCors(async (data) => {
+    const { applicationId, studentEmail, studentName, status, rejectionReason } = data;
+    
+    if (!studentEmail || !status) {
+      throw new functions.https.HttpsError('invalid-argument', 'Missing required data');
+    }
+    
+    const subject = `Application Update - Training Institute`;
+    
+    // Create rejection reason content if provided
+    const rejectionReasonContent = (status === 'rejected' && rejectionReason) 
+      ? `<p><strong>Reason for rejection:</strong> ${rejectionReason}</p>` 
+      : '';
+    
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #4F46E5;">Application Status Update</h2>
+        <p>Dear ${studentName},</p>
+        ${status === 'approved' 
+          ? `<p>We are pleased to inform you that your application for the training program has been <strong>approved</strong>.</p>
+             <p>Congratulations! You will soon receive further details about the program, including start date and schedule.</p>`
+          : `<p>We regret to inform you that your application for the training program has been <strong>rejected</strong>.</p>
+             ${rejectionReasonContent}
+             <p>Thank you for your interest in our program. We encourage you to apply again in the future.</p>`
+        }
+        <p style="margin-top: 20px;">Regards,<br>Training Institute Team</p>
+      </div>
+    `;
+    
+    return await sendEmail(studentEmail, subject, html);
+  })
+);
+
 // Send interview scheduled notification
 exports.sendInterviewScheduledNotification = functions.https.onCall(
   withCors(async (data) => {
@@ -169,6 +205,86 @@ exports.sendInterviewScheduledNotification = functions.https.onCall(
         <p><strong>Email:</strong> ${studentEmail}</p>
         <p><strong>Interview Date:</strong> ${formattedDate}</p>
         <p><strong>Meeting Link:</strong> <a href="${meetingLink}" style="color: #4F46E5;">${meetingLink}</a></p>
+        <p>Please log in to the interviewer dashboard to view more details and to provide your evaluation after the interview.</p>
+        <p style="margin-top: 20px;">Regards,<br>Training Institute Team</p>
+      </div>
+    `;
+    
+    const results = await Promise.allSettled([
+      sendEmail(studentEmail, studentSubject, studentHtml),
+      sendEmail(interviewerEmail, interviewerSubject, interviewerHtml)
+    ]);
+    
+    // Even if one email fails, return success for the function
+    return { 
+      success: true,
+      studentEmailSent: results[0].status === 'fulfilled' && results[0].value.success,
+      interviewerEmailSent: results[1].status === 'fulfilled' && results[1].value.success
+    };
+  })
+);
+
+// Send interview rescheduled notification
+exports.sendInterviewRescheduledNotification = functions.https.onCall(
+  withCors(async (data) => {
+    const { 
+      applicationId, 
+      studentEmail, 
+      studentName, 
+      interviewerEmail, 
+      interviewerName, 
+      meetingLink, 
+      scheduledDate,
+      interviewNumber,
+      isReschedule = true
+    } = data;
+    
+    if (!studentEmail || !interviewerEmail || !meetingLink || !scheduledDate) {
+      throw new functions.https.HttpsError('invalid-argument', 'Missing required data');
+    }
+    
+    let formattedDate;
+    try {
+      formattedDate = new Date(scheduledDate).toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      formattedDate = scheduledDate.toString();
+    }
+    
+    // Send email to student
+    const studentSubject = `Interview ${interviewNumber} Rescheduled - Training Institute`;
+    const studentHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #4F46E5;">Interview Rescheduled</h2>
+        <p>Dear ${studentName},</p>
+        <p>Your interview for the training program has been rescheduled with <strong>${interviewerName}</strong> on <strong>${formattedDate}</strong>.</p>
+        <p>Please join the interview using the following link:</p>
+        <p><a href="${meetingLink}" style="color: #4F46E5;">${meetingLink}</a></p>
+        <p>Please be on time and make sure your camera and microphone are working properly.</p>
+        <p><strong>Note:</strong> This is a rescheduled interview. Please disregard the previous interview time.</p>
+        <p style="margin-top: 20px;">Regards,<br>Training Institute Team</p>
+      </div>
+    `;
+    
+    // Send email to interviewer
+    const interviewerSubject = `Interview ${interviewNumber} Rescheduled - Training Institute`;
+    const interviewerHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #4F46E5;">Interview Rescheduled</h2>
+        <p>Dear ${interviewerName},</p>
+        <p>An interview you were assigned to conduct has been rescheduled.</p>
+        <p><strong>Applicant:</strong> ${studentName}</p>
+        <p><strong>Email:</strong> ${studentEmail}</p>
+        <p><strong>New Interview Date:</strong> ${formattedDate}</p>
+        <p><strong>Meeting Link:</strong> <a href="${meetingLink}" style="color: #4F46E5;">${meetingLink}</a></p>
+        <p><strong>Note:</strong> This interview has been rescheduled. Please update your calendar accordingly.</p>
         <p>Please log in to the interviewer dashboard to view more details and to provide your evaluation after the interview.</p>
         <p style="margin-top: 20px;">Regards,<br>Training Institute Team</p>
       </div>

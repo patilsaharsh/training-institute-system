@@ -2,7 +2,7 @@
 import { ApplicationData } from '../services/applicationService';
 
 interface StatusBadgeProps {
-  status: ApplicationData['status'];
+  status: ApplicationData['status'] | 'approved' | 'rejected';
   className?: string;
 }
 
@@ -21,6 +21,7 @@ const StatusBadge = ({ status, className = '' }: StatusBadgeProps) => {
     'interview3_failed': 'bg-red-100 text-red-800',
     'selected': 'bg-green-100 text-green-800',
     'rejected': 'bg-red-100 text-red-800',
+    'approved': 'bg-green-100 text-green-800',
   }[status] || 'bg-gray-100 text-gray-800';
 
   // Define human-readable labels
@@ -37,6 +38,7 @@ const StatusBadge = ({ status, className = '' }: StatusBadgeProps) => {
     'interview3_failed': 'Interview 3 Failed',
     'selected': 'Selected',
     'rejected': 'Rejected',
+    'approved': 'Approved',
   }[status] || 'Unknown';
 
   return (

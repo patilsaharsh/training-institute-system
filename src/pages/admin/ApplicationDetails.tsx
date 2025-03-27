@@ -66,7 +66,13 @@ const ApplicationDetails = () => {
     
     const status = application.status;
     
-    if (status === 'pending') {
+    // Don't show any action buttons if the application is rejected
+    if (status === 'rejected') {
+      return null;
+    }
+    
+    // Only show schedule interview button after approval
+    if (status === 'approved') {
       return (
         <Link to={`/admin/assign/${id}`}>
           <Button>Schedule Interview 1</Button>
@@ -91,6 +97,22 @@ const ApplicationDetails = () => {
     }
     
     return null;
+  };
+
+  // Component to render rejection reason
+  const RejectionNotice = () => {
+    if (!application || application.status !== 'rejected' || !application.rejectionReason) {
+      return null;
+    }
+
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+        <h3 className="text-red-800 font-medium text-sm">Application Rejected</h3>
+        <p className="text-red-700 text-sm mt-1">
+          <span className="font-medium">Reason for rejection:</span> {application.rejectionReason}
+        </p>
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -123,6 +145,12 @@ const ApplicationDetails = () => {
   const interview2 = getInterviewDetails('interview2');
   const interview3 = getInterviewDetails('interview3');
 
+  // Helper function to format boolean values
+  const formatBoolean = (value: boolean | undefined) => {
+    if (value === undefined) return 'Not specified';
+    return value ? 'Yes' : 'No';
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -135,10 +163,13 @@ const ApplicationDetails = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Applicant Details */}
-        <Card title="Applicant Details" className="md:col-span-1">
-          <div className="space-y-4">
+      {/* Rejection Notice */}
+      <RejectionNotice />
+
+      <div className="grid grid-cols-1 gap-6">
+        {/* Personal Details */}
+        <Card title="Personal Information" className="col-span-1">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <p className="text-sm font-medium text-gray-500">Name</p>
               <p className="mt-1">{application.name}</p>
@@ -148,17 +179,259 @@ const ApplicationDetails = () => {
               <p className="mt-1">{application.email}</p>
             </div>
             <div>
+              <p className="text-sm font-medium text-gray-500">Gender</p>
+              <p className="mt-1">{application.gender ? application.gender.charAt(0).toUpperCase() + application.gender.slice(1) : 'Not specified'}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Date of Birth</p>
+              <p className="mt-1">{application.dateOfBirth}</p>
+            </div>
+            <div>
               <p className="text-sm font-medium text-gray-500">Phone</p>
               <p className="mt-1">{application.phone}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">WhatsApp Number</p>
+              <p className="mt-1">{application.whatsappNumber}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Alternate Phone</p>
+              <p className="mt-1">{application.alternatePhone || 'Not provided'}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Aadhar Number</p>
               <p className="mt-1">{application.aadharNumber}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Course</p>
-              <p className="mt-1">{application.course}</p>
+              <p className="text-sm font-medium text-gray-500">Referred By</p>
+              <p className="mt-1">{application.referredBy || 'Not referred'}</p>
             </div>
+          </div>
+        </Card>
+        
+        {/* Address Information */}
+        <Card title="Address Information" className="col-span-1">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <p className="text-sm font-medium text-gray-500">Country</p>
+              <p className="mt-1">{application.country ? application.country.charAt(0).toUpperCase() + application.country.slice(1) : 'Not specified'}</p>
+            </div>
+            {application.state && (
+              <div>
+                <p className="text-sm font-medium text-gray-500">State</p>
+                <p className="mt-1">{application.state.replace(/_/g, ' ').split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</p>
+              </div>
+            )}
+            <div>
+              <p className="text-sm font-medium text-gray-500">City</p>
+              <p className="mt-1">{application.city}</p>
+            </div>
+            <div className="md:col-span-3">
+              <p className="text-sm font-medium text-gray-500">Permanent Address</p>
+              <p className="mt-1">{application.permanentAddress}</p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Course Information */}
+        <Card title="Course Information" className="col-span-1">
+          <div>
+            <p className="text-sm font-medium text-gray-500">Selected Course</p>
+            <p className="mt-1">{application.course}</p>
+          </div>
+        </Card>
+
+        {/* SSC & HSC Details */}
+        <Card title="School Education" className="col-span-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* SSC (10th) Details */}
+            <div className="border-b pb-4 md:border-b-0 md:border-r md:pr-6">
+              <h3 className="text-md font-medium mb-3">SSC (10th Standard)</h3>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Passing Year</p>
+                  <p className="mt-1">{application.sscPassingYear}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Percentage</p>
+                  <p className="mt-1">{application.sscMarks}%</p>
+                </div>
+              </div>
+            </div>
+
+            {/* HSC (12th) Details */}
+            <div>
+              <h3 className="text-md font-medium mb-3">HSC (12th Standard)</h3>
+              {application.hscPassingYear ? (
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Passing Year</p>
+                    <p className="mt-1">{application.hscPassingYear}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Percentage</p>
+                    <p className="mt-1">{application.hscMarks}%</p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">Not provided</p>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        {/* Diploma Details (if applicable) */}
+        {application.hasDiploma && (
+          <Card title="Diploma Education" className="col-span-1">
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Diploma Stream</p>
+                  <p className="mt-1">{application.diplomaStream}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Passing Year</p>
+                  <p className="mt-1">{application.diplomaPassingYear}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Percentage</p>
+                  <p className="mt-1">{application.diplomaMarks}%</p>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Graduation Details */}
+        <Card title="Graduation Details" className="col-span-1">
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Graduation Stream</p>
+                <p className="mt-1">{application.graduationStream}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Technical Stream</p>
+                <p className="mt-1">{application.technicalStream}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Passing Year</p>
+                <p className="mt-1">{application.graduationPassingYear}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Percentage</p>
+                <p className="mt-1">{application.graduationMarks}%</p>
+              </div>
+            </div>
+
+            {/* Education Gap */}
+            <div className="border-t pt-4">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-md font-medium">Education Gap</h3>
+                <span className={`inline-flex rounded-full px-2 text-xs font-semibold ${
+                  application.educationGap 
+                    ? 'bg-yellow-100 text-yellow-800' 
+                    : 'bg-green-100 text-green-800'
+                }`}>
+                  {formatBoolean(application.educationGap)}
+                </span>
+              </div>
+              {application.educationGap && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Gap Duration (Years)</p>
+                    <p className="mt-1">{application.educationGapYears}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Reason</p>
+                    <p className="mt-1">{application.educationGapReason || 'Not specified'}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        {/* Post Graduation Details (if applicable) */}
+        {application.hasPostGraduation && (
+          <Card title="Post Graduation Details" className="col-span-1">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Post Graduation Stream</p>
+                <p className="mt-1">{application.postGraduationStream}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Passing Year</p>
+                <p className="mt-1">{application.postGraduationPassingYear}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Percentage</p>
+                <p className="mt-1">{application.postGraduationMarks}%</p>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Technical Skills & Work Experience */}
+        <Card title="Skills & Experience" className="col-span-1">
+          <div className="space-y-6">
+            {/* Technical Skills */}
+            <div>
+              <h3 className="text-md font-medium mb-2">Technical Skills</h3>
+              <p className="text-sm whitespace-pre-line">{application.technicalSkills}</p>
+            </div>
+            
+            {/* Work Experience */}
+            <div className="border-t pt-4">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-md font-medium">Work Experience</h3>
+                <span className={`inline-flex rounded-full px-2 text-xs font-semibold ${
+                  application.hasWorkExperience 
+                    ? 'bg-blue-100 text-blue-800' 
+                    : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {formatBoolean(application.hasWorkExperience)}
+                </span>
+              </div>
+              {application.hasWorkExperience && (
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Duration (Months)</p>
+                    <p className="mt-1">{application.workExperienceMonths}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Details</p>
+                    <p className="mt-1 whitespace-pre-line">{application.workExperienceDetails}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        {/* Resume */}
+        <Card title="Documents" className="col-span-1">
+          <div className="flex items-center space-x-3">
+            <svg className="h-10 w-10 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <div>
+              <h3 className="text-md font-medium">Resume</h3>
+              <a
+                href={application.resumeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-indigo-600 hover:text-indigo-500 text-sm mt-1 inline-block"
+              >
+                Download Resume (PDF)
+              </a>
+            </div>
+          </div>
+        </Card>
+
+        {/* Application Status */}
+        <Card title="Application Status" className="col-span-1">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <p className="text-sm font-medium text-gray-500">Current Status</p>
               <div className="mt-1">
@@ -172,23 +445,16 @@ const ApplicationDetails = () => {
               </p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Resume</p>
-              <div className="mt-1">
-                <a
-                  href={application.resumeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-indigo-600 hover:text-indigo-500"
-                >
-                  View Resume
-                </a>
-              </div>
+              <p className="text-sm font-medium text-gray-500">Last Updated</p>
+              <p className="mt-1">
+                {application.updatedAt && dayjs(application.updatedAt.toDate()).format('MMM D, YYYY')}
+              </p>
             </div>
           </div>
         </Card>
 
         {/* Interview Details */}
-        <Card title="Interview Process" className="md:col-span-2">
+        <Card title="Interview Process" className="col-span-1">
           <div className="space-y-8">
             {/* Interview 1 */}
             <div className="border-b pb-6">
@@ -226,14 +492,22 @@ const ApplicationDetails = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-500">Meeting Link</p>
                       <p className="mt-1">
-                        <a
-                          href={interview1.meetingLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-indigo-600 hover:text-indigo-500"
-                        >
-                          {interview1.meetingLink}
-                        </a>
+                        {/* Disable the link if interview is completed */}
+                        {interview1.status === 'passed' || interview1.status === 'failed' ? (
+                          <span className="text-gray-500">
+                            {interview1.meetingLink}
+                            <span className="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">Interview Completed</span>
+                          </span>
+                        ) : (
+                          <a
+                            href={interview1.meetingLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-indigo-600 hover:text-indigo-500"
+                          >
+                            {interview1.meetingLink}
+                          </a>
+                        )}
                       </p>
                     </div>
                   )}
@@ -247,12 +521,20 @@ const ApplicationDetails = () => {
                 </div>
               ) : (
                 <div className="text-center py-4">
-                  <p className="text-sm text-gray-500">First interview hasn't been scheduled yet.</p>
-                  <div className="mt-3">
-                    <Link to={`/admin/assign/${id}`}>
-                      <Button size="sm">Schedule Interview 1</Button>
-                    </Link>
-                  </div>
+                  <p className="text-sm text-gray-500">
+                    {application.status === 'approved' 
+                      ? 'First interview can now be scheduled.'
+                      : application.status === 'rejected'
+                      ? 'Application was rejected.'
+                      : 'Application needs to be approved before scheduling interviews.'}
+                  </p>
+                  {application.status === 'approved' && (
+                    <div className="mt-3">
+                      <Link to={`/admin/assign/${id}`}>
+                        <Button size="sm">Schedule Interview 1</Button>
+                      </Link>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -295,14 +577,22 @@ const ApplicationDetails = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-500">Meeting Link</p>
                       <p className="mt-1">
-                        <a
-                          href={interview2.meetingLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-indigo-600 hover:text-indigo-500"
-                        >
-                          {interview2.meetingLink}
-                        </a>
+                        {/* Disable the link if interview is completed */}
+                        {interview2.status === 'passed' || interview2.status === 'failed' ? (
+                          <span className="text-gray-500">
+                            {interview2.meetingLink}
+                            <span className="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">Interview Completed</span>
+                          </span>
+                        ) : (
+                          <a
+                            href={interview2.meetingLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-indigo-600 hover:text-indigo-500"
+                          >
+                            {interview2.meetingLink}
+                          </a>
+                        )}
                       </p>
                     </div>
                   )}
@@ -317,11 +607,13 @@ const ApplicationDetails = () => {
               ) : application.status === 'interview1_passed' ? (
                 <div className="text-center py-4">
                   <p className="text-sm text-gray-500">Ready to schedule second interview.</p>
-                  <div className="mt-3">
-                    <Link to={`/admin/assign/${id}`}>
-                      <Button size="sm">Schedule Interview 2</Button>
-                    </Link>
-                  </div>
+                  {application.status !== 'rejected' && (
+                    <div className="mt-3">
+                      <Link to={`/admin/assign/${id}`}>
+                        <Button size="sm">Schedule Interview 2</Button>
+                      </Link>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-4">
@@ -370,14 +662,22 @@ const ApplicationDetails = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-500">Meeting Link</p>
                       <p className="mt-1">
-                        <a
-                          href={interview3.meetingLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-indigo-600 hover:text-indigo-500"
-                        >
-                          {interview3.meetingLink}
-                        </a>
+                        {/* Disable the link if interview is completed */}
+                        {interview3.status === 'passed' || interview3.status === 'failed' ? (
+                          <span className="text-gray-500">
+                            {interview3.meetingLink}
+                            <span className="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">Interview Completed</span>
+                          </span>
+                        ) : (
+                          <a
+                            href={interview3.meetingLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-indigo-600 hover:text-indigo-500"
+                          >
+                            {interview3.meetingLink}
+                          </a>
+                        )}
                       </p>
                     </div>
                   )}
@@ -392,11 +692,13 @@ const ApplicationDetails = () => {
               ) : application.status === 'interview2_passed' ? (
                 <div className="text-center py-4">
                   <p className="text-sm text-gray-500">Ready to schedule final interview.</p>
-                  <div className="mt-3">
-                    <Link to={`/admin/assign/${id}`}>
-                      <Button size="sm">Schedule Interview 3</Button>
-                    </Link>
-                  </div>
+                  {application.status !== 'rejected' && (
+                    <div className="mt-3">
+                      <Link to={`/admin/assign/${id}`}>
+                        <Button size="sm">Schedule Interview 3</Button>
+                      </Link>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-4">

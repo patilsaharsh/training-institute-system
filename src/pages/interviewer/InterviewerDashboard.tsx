@@ -23,6 +23,7 @@ const InterviewerDashboard = () => {
         if (currentUser) {
           const data = await getInterviewerAssignments(currentUser.email || '');
           setApplications(data);
+          console.log('Fetched applications:', data); // Debug log
         }
       } catch (error) {
         console.error('Error fetching interviewer assignments:', error);
@@ -34,18 +35,38 @@ const InterviewerDashboard = () => {
     fetchAssignments();
   }, [currentUser]);
 
-  // Helper function to get interview number for this interviewer
+  // Helper function to get active interview number for this interviewer
   const getInterviewNumber = (application: ApplicationWithId) => {
     if (!currentUser?.email) return null;
     
     const email = currentUser.email;
+    const status = application.status;
     
-    if (application.interviews?.interview1?.interviewerId === email) {
+    console.log(`Application ${application.id} status: ${status}`); // Debug log
+    
+    // Determine interview number based on the current application status
+    if (status.includes('interview1') && 
+        application.interviews?.interview1?.interviewerId === email) {
       return 1;
+    }
+    
+    if (status.includes('interview2') && 
+        application.interviews?.interview2?.interviewerId === email) {
+      return 2;
+    }
+    
+    if (status.includes('interview3') && 
+        application.interviews?.interview3?.interviewerId === email) {
+      return 3;
+    }
+    
+    // Fallback: check all interviews if we couldn't determine by status
+    if (application.interviews?.interview3?.interviewerId === email) {
+      return 3;
     } else if (application.interviews?.interview2?.interviewerId === email) {
       return 2;
-    } else if (application.interviews?.interview3?.interviewerId === email) {
-      return 3;
+    } else if (application.interviews?.interview1?.interviewerId === email) {
+      return 1;
     }
     
     return null;
@@ -75,13 +96,22 @@ const InterviewerDashboard = () => {
 
   // Helper function to check if interview is pending
   const isInterviewPending = (application: ApplicationWithId, interviewNumber: number) => {
-    const interviewStatus = {
-      1: ['pending', 'interview1_scheduled'],
-      2: ['interview1_passed', 'interview2_scheduled'],
-      3: ['interview2_passed', 'interview3_scheduled'],
-    }[interviewNumber] || [];
+    const status = application.status;
     
-    return interviewStatus.includes(application.status);
+    // Check if the interview is pending based on the application status
+    if (interviewNumber === 1) {
+      return status === 'pending' || status === 'interview1_scheduled';
+    }
+    
+    if (interviewNumber === 2) {
+      return status === 'interview1_passed' || status === 'interview2_scheduled';
+    }
+    
+    if (interviewNumber === 3) {
+      return status === 'interview2_passed' || status === 'interview3_scheduled';
+    }
+    
+    return false;
   };
 
   // Helper function to get meeting link
@@ -176,7 +206,7 @@ const InterviewerDashboard = () => {
             const meetingLink = getMeetingLink(application, interviewNumber);
             
             return (
-              <Card key={application.id}>
+              <Card key={`${application.id}-interview${interviewNumber}`}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div>
                     <h3 className="text-lg font-medium text-gray-900">{application.name}</h3>

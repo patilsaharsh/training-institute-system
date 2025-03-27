@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 const Navbar = () => {
   const { currentUser, signOut, isAdmin, isInterviewer, isStudent } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation(); // Get current location
+  const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
 
@@ -60,6 +60,141 @@ const Navbar = () => {
               >
                 Home
               </Link>
+              
+              {/* Programs Dropdown - CSS-only approach with header as span not link */}
+              <div className="group relative inline-block">
+                <div 
+                  className={`${isActive('/programs') 
+                    ? 'border-indigo-500 text-gray-900' 
+                    : 'border-transparent text-gray-500 group-hover:border-gray-300 group-hover:text-gray-700'} 
+                    inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium cursor-pointer`}
+                >
+                  Programs
+                  <svg 
+                    className="ml-1 h-4 w-4 transform group-hover:rotate-180 transition-transform duration-200"
+                    xmlns="http://www.w3.org/2000/svg" 
+                    viewBox="0 0 20 20" 
+                    fill="currentColor"
+                  >
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                
+                <div className="absolute left-0 mt-1 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="py-1">
+                    <Link 
+                      to="/programs/upcoming" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Upcoming Programs
+                    </Link>
+                    <Link 
+                      to="/programs/past" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Past Programs
+                    </Link>
+                    <Link 
+                      to="/programs/calendar" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Training Calendar
+                    </Link>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Testimonials Dropdown - CSS-only approach with header as span not link */}
+              <div className="group relative inline-block">
+                <div 
+                  className={`${isActive('/testimonials') 
+                    ? 'border-indigo-500 text-gray-900' 
+                    : 'border-transparent text-gray-500 group-hover:border-gray-300 group-hover:text-gray-700'} 
+                    inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium cursor-pointer`}
+                >
+                  Testimonials
+                  <svg 
+                    className="ml-1 h-4 w-4 transform group-hover:rotate-180 transition-transform duration-200"
+                    xmlns="http://www.w3.org/2000/svg" 
+                    viewBox="0 0 20 20" 
+                    fill="currentColor"
+                  >
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                
+                <div className="absolute left-0 mt-1 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="py-1">
+                    <Link 
+                      to="/testimonials/recruiter" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Recruiter Testimonials
+                    </Link>
+                    <Link 
+                      to="/testimonials/student" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Student Testimonials
+                    </Link>
+                  </div>
+                </div>
+              </div>
+              
+              {/* About Dropdown - CSS-only approach with header as span not link */}
+              <div className="group relative inline-block">
+                <div 
+                  className={`${isActive('/about') 
+                    ? 'border-indigo-500 text-gray-900' 
+                    : 'border-transparent text-gray-500 group-hover:border-gray-300 group-hover:text-gray-700'} 
+                    inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium cursor-pointer`}
+                >
+                  About
+                  <svg 
+                    className="ml-1 h-4 w-4 transform group-hover:rotate-180 transition-transform duration-200"
+                    xmlns="http://www.w3.org/2000/svg" 
+                    viewBox="0 0 20 20" 
+                    fill="currentColor"
+                  >
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                
+                <div className="absolute left-0 mt-1 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="py-1">
+                    <Link 
+                      to="/about/trustees" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Trustees
+                    </Link>
+                    <Link 
+                      to="/about/advisors" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Advisors
+                    </Link>
+                    <Link 
+                      to="/about/smes" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      SME's
+                    </Link>
+                    <Link 
+                      to="/about/supporters" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Supporters
+                    </Link>
+                    <Link 
+                      to="/about/partners" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Partners
+                    </Link>
+                  </div>
+                </div>
+              </div>
               
               {currentUser && isStudent() && (
                 <>
@@ -191,6 +326,127 @@ const Navbar = () => {
           >
             Home
           </Link>
+          
+          {/* Mobile Programs Menu - Using a details/summary approach for better touch support */}
+          <details className="group">
+            <summary className="list-none flex justify-between items-center pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 text-base font-medium cursor-pointer">
+              <span>Programs</span>
+              <svg 
+                className="ml-1 h-5 w-5 transform group-open:rotate-180"
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 20 20" 
+                fill="currentColor"
+              >
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </summary>
+            <div className="pl-6">
+              <Link
+                to="/programs/upcoming"
+                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 text-sm"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Upcoming Programs
+              </Link>
+              <Link
+                to="/programs/past"
+                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 text-sm"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Past Programs
+              </Link>
+              <Link
+                to="/programs/calendar"
+                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 text-sm"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Training Calendar
+              </Link>
+            </div>
+          </details>
+          
+          {/* Mobile Testimonials Menu */}
+          <details className="group">
+            <summary className="list-none flex justify-between items-center pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 text-base font-medium cursor-pointer">
+              <span>Testimonials</span>
+              <svg 
+                className="ml-1 h-5 w-5 transform group-open:rotate-180"
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 20 20" 
+                fill="currentColor"
+              >
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </summary>
+            <div className="pl-6">
+              <Link
+                to="/testimonials/recruiter"
+                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 text-sm"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Recruiter Testimonials
+              </Link>
+              <Link
+                to="/testimonials/student"
+                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 text-sm"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Student Testimonials
+              </Link>
+            </div>
+          </details>
+          
+          {/* Mobile About Menu */}
+          <details className="group">
+            <summary className="list-none flex justify-between items-center pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 text-base font-medium cursor-pointer">
+              <span>About</span>
+              <svg 
+                className="ml-1 h-5 w-5 transform group-open:rotate-180"
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 20 20" 
+                fill="currentColor"
+              >
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </summary>
+            <div className="pl-6">
+              <Link
+                to="/about/trustees"
+                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 text-sm"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Trustees
+              </Link>
+              <Link
+                to="/about/advisors"
+                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 text-sm"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Advisors
+              </Link>
+              <Link
+                to="/about/smes"
+                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 text-sm"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                SME's
+              </Link>
+              <Link
+                to="/about/supporters"
+                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 text-sm"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Supporters
+              </Link>
+              <Link
+                to="/about/partners"
+                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 text-sm"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Partners
+              </Link>
+            </div>
+          </details>
           
           {currentUser && isStudent() && (
             <>

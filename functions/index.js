@@ -5,7 +5,15 @@ exports.sendApplicationConfirmationEmail = functions.https.onCall(() => {
   return { success: true };
 });
 
+exports.sendStatusUpdateNotification = functions.https.onCall(() => {
+  return { success: true };
+});
+
 exports.sendInterviewScheduledNotification = functions.https.onCall(() => {
+  return { success: true };
+});
+
+exports.sendInterviewRescheduledNotification = functions.https.onCall(() => {
   return { success: true };
 });
 

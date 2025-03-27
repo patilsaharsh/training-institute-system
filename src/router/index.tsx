@@ -16,6 +16,22 @@ import InterviewAssignment from '../pages/admin/InterviewAssignment';
 import InterviewEvaluation from '../pages/interviewer/InterviewEvaluation';
 import NotFoundPage from '../pages/NotFoundPage';
 
+// Program Pages
+import UpcomingPrograms from '../pages/programs/UpcomingPrograms';
+import PastPrograms from '../pages/programs/PastPrograms';
+import TrainingCalendar from '../pages/programs/TrainingCalendar';
+
+// Testimonial Pages
+import RecruiterTestimonials from '../pages/testimonials/RecruiterTestimonials';
+import StudentTestimonials from '../pages/testimonials/StudentTestimonialsPage';
+
+// About Pages
+import Trustees from '../pages/about/Trustees';
+import Advisors from '../pages/about/Advisors';
+import SMEs from '../pages/about/SMEs';
+import Supporters from '../pages/about/Supporters';
+import Partners from '../pages/about/Partners';
+
 // Protected Route Components
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -63,6 +79,50 @@ export const AppRouter = () => {
           path: 'login',
           element: <LoginPage />,
         },
+        // Program Routes
+        {
+          path: 'programs/upcoming',
+          element: <UpcomingPrograms />,
+        },
+        {
+          path: 'programs/past',
+          element: <PastPrograms />,
+        },
+        {
+          path: 'programs/calendar',
+          element: <TrainingCalendar />,
+        },
+        // Testimonial Routes
+        {
+          path: 'testimonials/recruiter',
+          element: <RecruiterTestimonials />,
+        },
+        {
+          path: 'testimonials/student',
+          element: <StudentTestimonials />,
+        },
+        // About Routes
+        {
+          path: 'about/trustees',
+          element: <Trustees />,
+        },
+        {
+          path: 'about/advisors',
+          element: <Advisors />,
+        },
+        {
+          path: 'about/smes',
+          element: <SMEs />,
+        },
+        {
+          path: 'about/supporters',
+          element: <Supporters />,
+        },
+        {
+          path: 'about/partners',
+          element: <Partners />,
+        },
+        // Student Routes
         {
           path: 'student',
           element: (
@@ -79,6 +139,7 @@ export const AppRouter = () => {
             </ProtectedRoute>
           ),
         },
+        // Admin Routes
         {
           path: 'admin',
           element: (
@@ -103,6 +164,7 @@ export const AppRouter = () => {
             </ProtectedRoute>
           ),
         },
+        // Interviewer Routes
         {
           path: 'interviewer',
           element: (
@@ -119,6 +181,7 @@ export const AppRouter = () => {
             </ProtectedRoute>
           ),
         },
+        // 404 Route
         {
           path: '*',
           element: <NotFoundPage />,

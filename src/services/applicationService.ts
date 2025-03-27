@@ -13,22 +13,70 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { db, functions } from '../firebase/config';
+import { db, functions, storage } from '../firebase/config';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
+// Updated ApplicationData interface to include all the form fields
 export interface ApplicationData {
+  // Personal Information
   name: string;
-  aadharNumber: string;
   email: string;
+  gender: 'male' | 'female' | 'other';
   phone: string;
+  whatsappNumber: string;
+  alternatePhone?: string;
+  aadharNumber: string;
+  dateOfBirth: string;
+  referredBy?: string;
+  
+  // Address Information
+  country: string;
+  state?: string;
+  city: string;
+  permanentAddress: string;
+  
+  // Course Selection
+  course: 'SAP ABAP' | 'SAP SD' | 'SAP MM' | 'SAP CPI' | 'SAP BASIS' | 'SAP FICO';
+  
+  // Education details
+  sscMarks: string;
+  sscPassingYear: string;
+  hscMarks?: string;
+  hscPassingYear?: string;
+  hasDiploma?: boolean;
+  diplomaStream?: string;
+  diplomaMarks?: string;
+  diplomaPassingYear?: string;
+  graduationStream: string;
+  graduationMarks: string;
+  graduationPassingYear: string;
+  technicalStream: string;
+  educationGap?: boolean;
+  educationGapYears?: string;
+  educationGapReason?: string;
+  hasPostGraduation?: boolean;
+  postGraduationStream?: string;
+  postGraduationMarks?: string;
+  postGraduationPassingYear?: string;
+  
+  // Technical skills and work experience
+  technicalSkills: string;
+  hasWorkExperience?: boolean;
+  workExperienceMonths?: string;
+  workExperienceDetails?: string;
+  
+  // File related
   resumeUrl: string;
-  course: string;
+  
+  // Application status
   status: 'pending' | 'interview1_scheduled' | 'interview1_passed' | 'interview1_failed' |
           'interview2_scheduled' | 'interview2_passed' | 'interview2_failed' |
           'interview3_scheduled' | 'interview3_passed' | 'interview3_failed' | 
-          'selected' | 'rejected';
+          'selected' | 'rejected' | 'approved';
   userId: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  rejectionReason?: string;
   interviews?: {
     interview1?: {
       interviewerId?: string;
@@ -57,15 +105,53 @@ export interface ApplicationData {
   };
 }
 
-// Submit application
-export const submitApplication = async (data: Omit<ApplicationData, 'createdAt' | 'updatedAt' | 'status' | 'userId'> & { userId: string }): Promise<string> => {
+// Submit application with FormData support for file uploads
+export const submitApplication = async (formData: FormData): Promise<string> => {
   try {
+    // Get the application data from the FormData
+    const applicationDataStr = formData.get("applicationData");
+    if (!applicationDataStr || typeof applicationDataStr !== 'string') {
+      throw new Error("Invalid application data");
+    }
+    
+    const applicationData = JSON.parse(applicationDataStr);
+    
+    // Validate user ID
+    if (!applicationData.userId) {
+      throw new Error("User ID is required");
+    }
+    
+    // Upload resume file to Firebase Storage
+    const resumeFile = formData.get("resumeFile") as File;
+    let resumeUrl = "";
+    
+    if (resumeFile) {
+      // Create a unique filename
+      const filename = `resumes/${applicationData.userId}_${Date.now()}_${resumeFile.name}`;
+      const storageRef = ref(storage, filename);
+      
+      try {
+        // Upload the file
+        await uploadBytes(storageRef, resumeFile);
+        
+        // Get the download URL
+        resumeUrl = await getDownloadURL(storageRef);
+      } catch (uploadError) {
+        console.error('Error uploading resume:', uploadError);
+        throw new Error("Failed to upload resume file. Please try again.");
+      }
+    } else {
+      throw new Error("Resume file is required");
+    }
+    
+    // Prepare application data for Firestore
     const appData: Omit<ApplicationData, 'createdAt' | 'updatedAt'> = {
-      ...data,
+      ...applicationData,
+      resumeUrl,
       status: 'pending',
-      userId: data.userId,
     };
     
+    // Add the application to Firestore
     const docRef = await addDoc(collection(db, 'applications'), {
       ...appData,
       createdAt: serverTimestamp(),
@@ -73,12 +159,76 @@ export const submitApplication = async (data: Omit<ApplicationData, 'createdAt' 
     });
     
     // Call Cloud Function to send confirmation email
-    const sendEmail = httpsCallable(functions, 'sendApplicationConfirmationEmail');
-    await sendEmail({ applicationId: docRef.id, email: data.email, name: data.name });
+    try {
+      const sendEmail = httpsCallable(functions, 'sendApplicationConfirmationEmail');
+      await sendEmail({ 
+        applicationId: docRef.id, 
+        email: applicationData.email, 
+        name: applicationData.name 
+      });
+    } catch (emailError) {
+      console.error('Error sending confirmation email:', emailError);
+      // Continue even if email fails
+    }
     
     return docRef.id;
   } catch (error) {
     console.error('Error submitting application:', error);
+    throw error;
+  }
+};
+
+// The rest of the file remains unchanged
+export const updateApplicationStatus = async (
+  applicationId: string,
+  status: 'approved' | 'rejected' | 'selected',
+  rejectionReason?: string
+): Promise<void> => {
+  try {
+    const docRef = doc(db, 'applications', applicationId);
+    
+    // Update object to be passed to updateDoc
+    const updateObj: any = {
+      status,
+      updatedAt: serverTimestamp(),
+    };
+    
+    // Add rejection reason if provided
+    if (status === 'rejected' && rejectionReason) {
+      updateObj.rejectionReason = rejectionReason;
+    }
+    
+    // Update the application with new status and optional rejection reason
+    await updateDoc(docRef, updateObj);
+    
+    // Get application data for email notification
+    const appSnapshot = await getDoc(docRef);
+    if (appSnapshot.exists()) {
+      const appData = appSnapshot.data() as ApplicationData;
+      
+      if (status === 'selected') {
+        // Call Cloud Function to send selection notification
+        const sendSelectionNotification = httpsCallable(functions, 'sendSelectionNotification');
+        await sendSelectionNotification({
+          applicationId,
+          studentEmail: appData.email,
+          studentName: appData.name
+        });
+      } else {
+        // Call Cloud Function to send status update notification
+        // Including rejection reason if applicable
+        const sendStatusUpdateNotification = httpsCallable(functions, 'sendStatusUpdateNotification');
+        await sendStatusUpdateNotification({
+          applicationId,
+          studentEmail: appData.email,
+          studentName: appData.name,
+          status,
+          rejectionReason: rejectionReason || undefined
+        });
+      }
+    }
+  } catch (error) {
+    console.error(`Error updating application status to ${status}:`, error);
     throw error;
   }
 };
@@ -242,25 +392,8 @@ export const updateInterviewResult = async (
       });
     }
     
-    // If this was the final interview and the student passed, update to selected status
-    if (interviewNumber === 3 && status === 'passed') {
-      await updateDoc(docRef, {
-        status: 'selected',
-        updatedAt: serverTimestamp(),
-      });
-      
-      // Send selection email
-      const sendSelectionNotification = httpsCallable(functions, 'sendSelectionNotification');
-      const appSnapshot = await getDoc(docRef);
-      if (appSnapshot.exists()) {
-        const appData = appSnapshot.data() as ApplicationData;
-        await sendSelectionNotification({
-          applicationId,
-          studentEmail: appData.email,
-          studentName: appData.name,
-        });
-      }
-    }
+    // Removed the automatic selection after passing interview 3
+    // Now selection will only happen manually through the admin dashboard
   } catch (error) {
     console.error('Error updating interview result:', error);
     throw error;
