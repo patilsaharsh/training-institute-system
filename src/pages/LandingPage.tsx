@@ -657,7 +657,7 @@ const LandingPage: React.FC = () => {
             </div>
             <div className="cta-button">
               <a
-                href="/apply-now"
+                href="/student/apply"
                 className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-white hover:bg-indigo-50 transition-colors duration-300"
               >
                 Apply Now
