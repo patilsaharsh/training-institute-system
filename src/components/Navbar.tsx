@@ -162,6 +162,12 @@ const Navbar = () => {
                 
                 <div className="absolute left-0 mt-1 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <div className="py-1">
+                  <Link 
+  to="/about/contact" 
+  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+>
+  Contact Us
+</Link>
                     <Link 
                       to="/about/trustees" 
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -410,6 +416,13 @@ const Navbar = () => {
               </svg>
             </summary>
             <div className="pl-6">
+            <Link
+  to="/about/contact"
+  className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 text-sm"
+  onClick={() => setIsMenuOpen(false)}
+>
+  Contact Us
+</Link>
               <Link
                 to="/about/trustees"
                 className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 text-sm"

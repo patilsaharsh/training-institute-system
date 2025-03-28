@@ -80,7 +80,7 @@ const LandingPage: React.FC = () => {
       {/* Hero Section with Just Image - Clean Tailwind approach */}
       <section className="relative w-full">
         {/* The image container */}
-        <div className="relative w-full h-auto md:h-screen overflow-hidden">
+        <div className="relative w-full h-auto md:h-screen overflow-hidden rounded-lg shadow-lg">
           {/* Main image */}
           <img
             src={landing}

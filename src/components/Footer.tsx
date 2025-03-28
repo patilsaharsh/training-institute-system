@@ -9,9 +9,9 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Training Institute</h3>
+            <h3 className="text-lg font-semibold text-[#1D3677] mb-4">Utkarsh Foundation</h3>
             <p className="text-gray-600 mb-4">
-              Empowering students with skills for the future.
+              Empowering students with skills for the future through quality training and mentorship.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-indigo-500">
@@ -36,13 +36,19 @@ const Footer = () => {
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Links</h3>
+            <h3 className="text-lg font-semibold text-[#1D3677] mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/" className="text-gray-600 hover:text-indigo-500">Home</Link>
               </li>
               <li>
-                <Link to="/login" className="text-gray-600 hover:text-indigo-500">Sign In</Link>
+                <Link to="/programs/upcoming" className="text-gray-600 hover:text-indigo-500">Upcoming Programs</Link>
+              </li>
+              <li>
+                <Link to="/about/partners" className="text-gray-600 hover:text-indigo-500">Our Partners</Link>
+              </li>
+              <li>
+                <Link to="/about/contact" className="text-gray-600 hover:text-indigo-500">Contact Us</Link>
               </li>
               <li>
                 <Link to="/student/apply" className="text-gray-600 hover:text-indigo-500">Apply for Training</Link>
@@ -51,18 +57,23 @@ const Footer = () => {
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Contact Us</h3>
+            <h3 className="text-lg font-semibold text-[#1D3677] mb-4">Contact Us</h3>
             <address className="not-italic text-gray-600">
-              <p>123 Training Avenue</p>
-              <p>Tech City, TC 12345</p>
-              <p className="mt-3">Email: info@traininginstitute.com</p>
-              <p>Phone: (123) 456-7890</p>
+              <p className="mb-2"><span className="font-medium">Main Office:</span></p>
+              <p>1st Floor, House No 1644,</p>
+              <p>At: Chondhi Post: Kihim,</p>
+              <p>Tal: Alibag Dist: Raigad,</p>
+              <p>Maharashtra 402201</p>
+              <p className="mt-3"><span className="font-medium">Branch Office:</span></p>
+              <p>S.R.M College, S.N.Desai, chouk,</p>
+              <p>Kudal, Maharashtra 416520</p>
+              <p className="mt-3">Email: <a href="mailto:info@utkarsh-foundation.com" className="text-indigo-600 hover:text-indigo-800">info@utkarsh-foundation.com</a></p>
             </address>
           </div>
         </div>
         
         <div className="border-t border-gray-200 mt-8 pt-8 text-center text-gray-500 text-sm">
-          <p>&copy; {currentYear} Training Institute. All rights reserved.</p>
+          <p>&copy; {currentYear} Utkarsh Foundation. All rights reserved.</p>
         </div>
       </div>
     </footer>

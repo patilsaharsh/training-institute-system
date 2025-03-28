@@ -478,13 +478,13 @@ const PastPrograms: React.FC = () => {
           </p>
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
             <a 
-              href="/upcoming-programs" 
+              href="/programs/upcoming" 
               className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition-colors duration-300"
             >
               View Upcoming Programs
             </a>
             <a 
-              href="/contact-us" 
+              href="/about/contact" 
               className="px-6 py-3 bg-white text-indigo-600 font-medium rounded-md border border-indigo-600 hover:bg-indigo-50 transition-colors duration-300"
             >
               Contact Us

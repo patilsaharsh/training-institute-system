@@ -26,6 +26,7 @@ import RecruiterTestimonials from '../pages/testimonials/RecruiterTestimonials';
 import StudentTestimonials from '../pages/testimonials/StudentTestimonialsPage';
 
 // About Pages
+import Contact from '../pages/about/Contact';
 import Trustees from '../pages/about/Trustees';
 import Advisors from '../pages/about/Advisors';
 import SMEs from '../pages/about/SMEs';
@@ -102,6 +103,10 @@ export const AppRouter = () => {
           element: <StudentTestimonials />,
         },
         // About Routes
+        {
+          path: 'about/contact',
+          element: <Contact />,
+        },
         {
           path: 'about/trustees',
           element: <Trustees />,

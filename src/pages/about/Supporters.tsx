@@ -235,7 +235,7 @@ const Supporters: React.FC = () => {
             Become a part of our mission to provide quality education and opportunities to students from underserved communities.
           </p>
           <a 
-            href="/contact-us" 
+            href="/about/contact" 
             className="inline-block bg-indigo-600 text-white font-medium py-3 px-6 rounded-md hover:bg-indigo-700 transition-colors duration-300"
           >
             Get Involved

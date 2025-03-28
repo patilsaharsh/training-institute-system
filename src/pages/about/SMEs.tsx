@@ -107,7 +107,7 @@ const SMEs: React.FC = () => {
             Learn from our industry experts and gain valuable skills for your career development.
           </p>
           <a 
-            href="/apply-now" 
+            href="/student/apply" 
             className="inline-block bg-indigo-600 text-white font-medium py-3 px-6 rounded-md hover:bg-indigo-700 transition-colors duration-300"
           >
             Apply for Training

@@ -110,7 +110,7 @@ const Partners: React.FC = () => {
             Join our network of industry partners and help us in our mission to provide quality education and opportunities to students.
           </p>
           <a 
-            href="/contact-us" 
+            href="/about/contact" 
             className="inline-block bg-indigo-600 text-white font-medium py-3 px-6 rounded-md hover:bg-indigo-700 transition-colors duration-300"
           >
             Get in Touch
